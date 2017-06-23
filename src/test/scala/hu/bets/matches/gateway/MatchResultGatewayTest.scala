@@ -49,9 +49,9 @@ class MatchResultGatewayTest extends JUnitSuite with MockitoSugar {
 
     assert(
       List(
-        Some(ScheduledMatch("sr:match:11854534", LocalDateTime.parse("2017-06-27T16:00"), "UEFA Champions League 17/18", Team ("Alashkert", "ALA", "Armenia"), Team("FC Santa Coloma", "FCC", "Andorra"))),
-        Some(ScheduledMatch("sr:match:11854528", LocalDateTime.parse("2017-06-27T18:00"), "UEFA Champions League 17/18", Team("Vikingur Gota", "GOT", "Faroe Islands"), Team("Trepca 89","TRE", "Kosovo"))),
-        Some(ScheduledMatch("sr:match:11854532", LocalDateTime.parse("2017-06-27T18:00"), "UEFA Champions League 17/18", Team("Hibernians FC", "HIB", "Malta"), Team("FCI Tallinn", "FCI", "Estonia"))))
+        ScheduledMatch("sr:match:11854534", LocalDateTime.parse("2017-06-27T16:00"), "UEFA Champions League 17/18", Team ("Alashkert", "ALA", "Armenia"), Team("FC Santa Coloma", "FCC", "Andorra")),
+        ScheduledMatch("sr:match:11854528", LocalDateTime.parse("2017-06-27T18:00"), "UEFA Champions League 17/18", Team("Vikingur Gota", "GOT", "Faroe Islands"), Team("Trepca 89","TRE", "Kosovo")),
+        ScheduledMatch("sr:match:11854532", LocalDateTime.parse("2017-06-27T18:00"), "UEFA Champions League 17/18", Team("Hibernians FC", "HIB", "Malta"), Team("FCI Tallinn", "FCI", "Estonia")))
 
         ===
 
