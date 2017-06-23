@@ -1,3 +1,5 @@
 target/
 src/main/resources/apikey.txt
 Matches.iml
+.idea/
+football-matches.iml
