@@ -19,9 +19,9 @@ trait DateProvider {
   }
 }
 
-class MatchResultGateway(keyReader: KeyReader) extends DateProvider {
+class MatchInfoGateway(keyReader: KeyReader) extends DateProvider {
 
-  private val LOGGER: Logger = Logger.getLogger(classOf[MatchResultGateway])
+  private val LOGGER: Logger = Logger.getLogger(classOf[MatchInfoGateway])
 
   private val BASE_API = "%s://api.sportradar.us/soccer-%s%d/eu/en/schedules/%s/%s.%s?api_key=%s"
   private val PROTOCOL = "https"

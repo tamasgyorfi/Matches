@@ -8,10 +8,10 @@ import org.mockito.Mockito._
 import org.scalatest.junit.JUnitSuite
 import org.scalatest.mockito.MockitoSugar
 
-class MatchResultGatewayTest extends JUnitSuite with MockitoSugar {
+class MatchInfoGatewayTest extends JUnitSuite with MockitoSugar {
 
   val keyReader: KeyReader = mock[KeyReader]
-  var sut: MatchResultGateway = _
+  var sut: MatchInfoGateway = _
 
   trait FakeDateProvider {
     def getCurrentDate: LocalDate = {
@@ -21,7 +21,7 @@ class MatchResultGatewayTest extends JUnitSuite with MockitoSugar {
 
   @Before
   def setup(): Unit = {
-    sut = new MatchResultGateway(keyReader) with FakeDateProvider {
+    sut = new MatchInfoGateway(keyReader) with FakeDateProvider {
       override def getCurrentDate: LocalDate = super[FakeDateProvider].getCurrentDate
     }
   }
