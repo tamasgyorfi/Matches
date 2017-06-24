@@ -10,6 +10,14 @@ import org.apache.log4j.Logger
 
 object StringToMatch {
 
+  private val TEAM_NAME = "$.name"
+  private val SCHEDULE_ID = "$.id"
+  private val DATE = "$.scheduled"
+  private val COMPETITION = "$.season.name"
+  private val ABBREVIATION = "$.abbreviation"
+  private val COUNTRY = "$.country"
+  private val COMPETITORS = "$.competitors[%d]"
+
   private val LOGGER: Logger = Logger.getLogger("StringToMatch")
 
   implicit def stringToMatches(payload: String): List[Option[ScheduledMatch]] = {
@@ -30,17 +38,22 @@ object StringToMatch {
     }).toList
   }
 
+  implicit def stringToLocalDateTime(s: String): LocalDateTime = {
+    LocalDateTime.parse(s, DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+  }
+
   private def getTeam(document: Object) = {
-    Team(JsonPath.read(document, "$.name").toString,
-      JsonPath.read(document, "$.abbreviation").toString,
-      JsonPath.read(document, "$.country").toString)
+    Team(JsonPath.read(document, TEAM_NAME).toString,
+      JsonPath.read(document, ABBREVIATION).toString,
+      JsonPath.read(document, COUNTRY).toString)
   }
 
   private def getMatch(document: Object) = {
-    ScheduledMatch(JsonPath.read(document, "$.id").toString,
-      LocalDateTime.parse(JsonPath.read(document, "$.scheduled").toString, DateTimeFormatter.ISO_OFFSET_DATE_TIME),
-      JsonPath.read(document, "$.season.name").toString,
-      getTeam(JsonPath.read(document, "$.competitors[0]")),
-      getTeam(JsonPath.read(document, "$.competitors[1]")))
+    ScheduledMatch(
+      JsonPath.read(document, SCHEDULE_ID).toString,
+      JsonPath.read(document, DATE).toString,
+      JsonPath.read(document, COMPETITION).toString,
+      getTeam(JsonPath.read(document, COMPETITORS.format(0))),
+      getTeam(JsonPath.read(document, COMPETITORS.format(1))))
   }
 }
