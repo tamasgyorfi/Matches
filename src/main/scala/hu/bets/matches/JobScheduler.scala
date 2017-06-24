@@ -2,7 +2,7 @@ package hu.bets.matches
 
 import akka.actor.ActorSystem
 import hu.bets.matches.gateway.MatchInfoGateway
-
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 
 
