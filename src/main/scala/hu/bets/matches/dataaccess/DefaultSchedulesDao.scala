@@ -6,7 +6,6 @@ import com.mongodb.client.model.Filters
 import hu.bets.matches.model.ScheduledMatch
 import org.bson.Document
 
-import scala.concurrent.blocking
 
 class DefaultSchedulesDao(mongoCollection: MongoCollection[Document]) extends SchedulesDao {
 
@@ -14,19 +13,17 @@ class DefaultSchedulesDao(mongoCollection: MongoCollection[Document]) extends Sc
   /**
     * Saves a number of scheduled matches into the database.
     *
-    * @param schedules
+    * @param schedules the scheduled matches
     * @return the scheduled matches which could not be saved.
     */
   override def saveSchedules(schedules: List[ScheduledMatch]): List[ScheduledMatch] = {
     val retVal: List[ScheduledMatch] = List()
 
     schedules.foreach(scheduledMatch => {
-      blocking {
-        try {
-          insertIfAbsent(scheduledMatch)
-        } catch {
-          case e: Exception => scheduledMatch :: retVal
-        }
+      try {
+        insertIfAbsent(scheduledMatch)
+      } catch {
+        case _: Exception => scheduledMatch :: retVal
       }
     })
 
@@ -37,9 +34,7 @@ class DefaultSchedulesDao(mongoCollection: MongoCollection[Document]) extends Sc
     val query = Filters.eq("matchId", scheduledMatch.matchId)
 
     mongoCollection.find(query).first match {
-      case null => {
-        mongoCollection.insertOne(Document.parse(new Gson().toJson(scheduledMatch)))
-      }
+      case null => mongoCollection.insertOne(Document.parse(new Gson().toJson(scheduledMatch)))
       case _ =>
     }
   }
