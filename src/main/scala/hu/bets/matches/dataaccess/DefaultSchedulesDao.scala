@@ -1,14 +1,15 @@
 package hu.bets.matches.dataaccess
 
 import com.google.gson.Gson
-import com.mongodb.client.MongoCollection
-import com.mongodb.client.model.Filters
 import hu.bets.matches.model.ScheduledMatch
-import org.bson.Document
+import org.apache.log4j.Logger
+import redis.clients.jedis.JedisPool
 
 
-class DefaultSchedulesDao(mongoCollection: MongoCollection[Document]) extends SchedulesDao {
+class DefaultSchedulesDao(jedisPool: JedisPool) extends SchedulesDao {
 
+  private val LOGGER: Logger = Logger.getLogger(classOf[DefaultSchedulesDao])
+  private val SCHEDULES_DB = 0
 
   /**
     * Saves a number of scheduled matches into the database.
@@ -17,25 +18,25 @@ class DefaultSchedulesDao(mongoCollection: MongoCollection[Document]) extends Sc
     * @return the scheduled matches which could not be saved.
     */
   override def saveSchedules(schedules: List[ScheduledMatch]): List[ScheduledMatch] = {
-    val retVal: List[ScheduledMatch] = List()
+
+    val jedis = jedisPool.getResource
+    var retVal: List[ScheduledMatch] = List()
+
+    jedis.select(SCHEDULES_DB)
+    jedis.flushDB()
 
     schedules.foreach(scheduledMatch => {
       try {
-        insertIfAbsent(scheduledMatch)
+        jedis.set(scheduledMatch.matchId, new Gson().toJson(scheduledMatch))
       } catch {
-        case _: Exception => scheduledMatch :: retVal
+        case e: Exception => {
+          LOGGER.error("Exception caught while trying to save schedules. ", e)
+          retVal = retVal.::(scheduledMatch)
+        }
       }
     })
 
+    jedis.close()
     retVal
-  }
-
-  private def insertIfAbsent(scheduledMatch: ScheduledMatch): Unit = {
-    val query = Filters.eq("matchId", scheduledMatch.matchId)
-
-    mongoCollection.find(query).first match {
-      case null => mongoCollection.insertOne(Document.parse(new Gson().toJson(scheduledMatch)))
-      case _ =>
-    }
   }
 }
