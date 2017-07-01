@@ -18,13 +18,25 @@ class DefaultSchedulesDao(jedisPool: JedisPool) extends SchedulesDao {
     * @return the scheduled matches which could not be saved.
     */
   override def saveSchedules(schedules: List[ScheduledMatch]): List[ScheduledMatch] = {
+    clearCache()
+    saveScheduledMatches(schedules)
+  }
 
+  private def clearCache() = {
     val jedis = jedisPool.getResource
-    var retVal: List[ScheduledMatch] = List()
 
     jedis.select(SCHEDULES_DB)
     jedis.flushDB()
 
+    jedis.close()
+  }
+
+  private def saveScheduledMatches(schedules: List[ScheduledMatch]): List[ScheduledMatch] = {
+
+    val jedis = jedisPool.getResource
+    jedis.select(SCHEDULES_DB)
+
+    var retVal: List[ScheduledMatch] = List()
     schedules.foreach(scheduledMatch => {
       try {
         jedis.set(scheduledMatch.matchId, new Gson().toJson(scheduledMatch))
@@ -35,8 +47,8 @@ class DefaultSchedulesDao(jedisPool: JedisPool) extends SchedulesDao {
         }
       }
     })
-
     jedis.close()
+
     retVal
   }
 }
