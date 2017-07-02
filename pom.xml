@@ -6,6 +6,7 @@
 
     <properties>
         <akka.http.version>10.0.9</akka.http.version>
+        <akka.core.version>2.5.3</akka.core.version>
     </properties>
 
     <groupId>hu.bets</groupId>
@@ -35,7 +36,7 @@
         <dependency>
             <groupId>com.typesafe.akka</groupId>
             <artifactId>akka-actor_2.12</artifactId>
-            <version>2.5.3</version>
+            <version>${akka.core.version}</version>
         </dependency>
 
         <dependency>
@@ -65,7 +66,7 @@
         <dependency>
             <groupId>com.typesafe.akka</groupId>
             <artifactId>akka-stream_2.12</artifactId>
-            <version>2.5.3</version>
+            <version>${akka.core.version}</version>
         </dependency>
 
         <dependency>
@@ -113,7 +114,7 @@
         <dependency>
             <groupId>com.typesafe.akka</groupId>
             <artifactId>akka-testkit_2.12</artifactId>
-            <version>2.5.3</version>
+            <version>${akka.core.version}</version>
             <scope>test</scope>
         </dependency>
 
