@@ -4,6 +4,10 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
+    <properties>
+        <akka.http.version>10.0.9</akka.http.version>
+    </properties>
+
     <groupId>hu.bets</groupId>
     <artifactId>football-matches</artifactId>
     <version>0.0.1-SNAPSHOT</version>
@@ -49,13 +53,13 @@
         <dependency>
             <groupId>com.typesafe.akka</groupId>
             <artifactId>akka-http_2.12</artifactId>
-            <version>10.0.9</version>
+            <version>${akka.http.version}</version>
         </dependency>
 
         <dependency>
             <groupId>com.typesafe.akka</groupId>
             <artifactId>akka-http-spray-json_2.12</artifactId>
-            <version>10.0.9</version>
+            <version>${akka.http.version}</version>
         </dependency>
 
         <dependency>
@@ -65,21 +69,9 @@
         </dependency>
 
         <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-            <version>2.8.0</version>
-        </dependency>
-
-        <dependency>
             <groupId>redis.clients</groupId>
             <artifactId>jedis</artifactId>
             <version>2.9.0</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.github.jedis-lock</groupId>
-            <artifactId>jedis-lock</artifactId>
-            <version>1.0.0</version>
         </dependency>
 
         <dependency>
@@ -135,8 +127,8 @@
         <dependency>
             <groupId>com.typesafe.akka</groupId>
             <artifactId>akka-http-testkit_2.12</artifactId>
+            <version>${akka.http.version}</version>
             <scope>test</scope>
-            <version>10.0.8</version>
         </dependency>
 
     </dependencies>
