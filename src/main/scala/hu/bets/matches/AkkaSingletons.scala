@@ -11,7 +11,7 @@ object AkkaSingletons {
 
   def getScheduler = scheduler
 
-  def getACtorSystem = actorSystem
+  def getActorSystem = actorSystem
 
   def getMaterializer = materializer
 }

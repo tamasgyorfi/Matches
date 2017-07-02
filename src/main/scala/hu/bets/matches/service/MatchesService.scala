@@ -5,4 +5,5 @@ import hu.bets.matches.model.ScheduledMatch
 trait MatchesService {
 
   def getSchedules(): List[ScheduledMatch]
+
 }

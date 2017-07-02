@@ -49,7 +49,13 @@
         <dependency>
             <groupId>com.typesafe.akka</groupId>
             <artifactId>akka-http_2.12</artifactId>
-            <version>10.0.8</version>
+            <version>10.0.9</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.typesafe.akka</groupId>
+            <artifactId>akka-http-spray-json_2.12</artifactId>
+            <version>10.0.9</version>
         </dependency>
 
         <dependency>
@@ -81,6 +87,12 @@
             <artifactId>mock-jedis</artifactId>
             <version>0.4.0</version>
             <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>net.liftweb</groupId>
+            <artifactId>lift-json_2.12</artifactId>
+            <version>3.0.1</version>
         </dependency>
 
         <!-- TESTS -->

@@ -1,9 +1,23 @@
 package hu.bets.matches.web.api
 
+import akka.actor.ActorRef
 import akka.http.scaladsl.model.{ContentTypes, HttpEntity}
 import akka.http.scaladsl.server.Directives._
+import akka.pattern.ask
+import akka.util.Timeout
+import hu.bets.matches.actors.{ScheduledMatchesRequest, ScheduledMatchesResponse}
+import net.liftweb.json.DefaultFormats
+import net.liftweb.json.Extraction._
+import net.liftweb.json.JsonAST._
+
+import scala.concurrent.Await
+import scala.concurrent.duration._
 
 trait FootballMatchResource {
+  implicit val timeout = Timeout(5 seconds)
+
+  private case class SecureScheduleRequest(token: String)
+  implicit val formats = DefaultFormats
 
   val route =
 
@@ -13,13 +27,21 @@ trait FootballMatchResource {
           complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, "<html><body><h1>Football-matches service up and running</h1></body></html>"))
         }
       } ~
-        get {
+        post {
           path("schedules") {
-            parameters('nrOfDays) { (nrOfDays) => {
-              complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, "<html><body><h1>Not yet implemented.</h1></body></html>"))
+            entity(as[String]) { request => {
+              val resultFuture = newScheduledMatchesProviderActor() ? ScheduledMatchesRequest
+              val result = Await.result(resultFuture, timeout.duration).asInstanceOf[ScheduledMatchesResponse]
+
+              val r = compactRender(decompose(result))
+
+              complete(HttpEntity(ContentTypes.`application/json`, r))
             }
             }
           }
         }
     }
+
+
+  def newScheduledMatchesProviderActor(): ActorRef
 }
