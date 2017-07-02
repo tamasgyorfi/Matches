@@ -9,7 +9,7 @@ import hu.bets.matches.model.{ScheduledMatch, Team}
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig
 import org.junit.{Before, Test}
 import org.mockito.Mockito.when
-import org.redisson.api.{RLock, RedissonClient}
+import org.redisson.api.{RLock, RReadWriteLock}
 import org.scalatest.junit.JUnitSuite
 import org.scalatest.mockito.MockitoSugar
 
@@ -18,16 +18,20 @@ class DefaultSchedulesDaoTest extends JUnitSuite with MockitoSugar {
   private val config: GenericObjectPoolConfig = new GenericObjectPoolConfig()
   private val jedisPool = new MockJedisPool(config, "test")
 
-  private val redissonClient: RedissonClient = mock[RedissonClient]
-  private val lock: RLock = mock[RLock]
+  private val readWriteLock: RReadWriteLock = mock[RReadWriteLock]
+  private val readLock: RLock = mock[RLock]
+  private val writeLock: RLock = mock[RLock]
+
   private var sut: DefaultSchedulesDao = _
 
   @Before
   def before(): Unit = {
-    when(redissonClient.getLock("schedules_lock")).thenReturn(lock)
-    when(lock.tryLock(1000, 1000, TimeUnit.MILLISECONDS)).thenReturn(true)
+    when(readWriteLock.readLock()).thenReturn(readLock)
+    when(readWriteLock.writeLock()).thenReturn(writeLock)
+    when(readLock.tryLock(1000, 1000, TimeUnit.MILLISECONDS)).thenReturn(true)
+    when(writeLock.tryLock(1000, 1000, TimeUnit.MILLISECONDS)).thenReturn(true)
 
-    sut = new DefaultSchedulesDao(jedisPool, redissonClient)
+    sut = new DefaultSchedulesDao(jedisPool, readWriteLock)
   }
 
   @Test
@@ -60,6 +64,8 @@ class DefaultSchedulesDaoTest extends JUnitSuite with MockitoSugar {
 
   @Test
   def shouldReturnAllSchedules(): Unit = {
+    when(readLock.tryLock(1000, 1000, TimeUnit.MILLISECONDS)).thenReturn(true)
+
     val entries = List(ScheduledMatches.scheduledMatch1, ScheduledMatches.scheduledMatch2)
     sut.saveSchedules(entries)
 
@@ -68,8 +74,18 @@ class DefaultSchedulesDaoTest extends JUnitSuite with MockitoSugar {
 
   @Test
   def availableSchedulesShouldBeEmptyWhenLockCannotBeAcquired(): Unit = {
-    when(lock.tryLock(1000, 1000, TimeUnit.MILLISECONDS)).thenReturn(true)
+    when(readLock.tryLock(1000, 1000, TimeUnit.MILLISECONDS)).thenReturn(false)
+    val retVal = sut.saveSchedules(List(ScheduledMatches.scheduledMatch1, ScheduledMatches.scheduledMatch2, ScheduledMatches.scheduledMatch3))
 
     assert(List() === sut.getAvailableSchedules)
   }
+
+  @Test
+  def availableSchedulesShouldNotBeEmptyWhenLockCanBeAcquiredEventually(): Unit = {
+    when(readLock.tryLock(1000, 1000, TimeUnit.MILLISECONDS)).thenReturn(false).thenReturn(false).thenReturn(true)
+    val retVal = sut.saveSchedules(List(ScheduledMatches.scheduledMatch1, ScheduledMatches.scheduledMatch2))
+
+    assert(List(ScheduledMatches.scheduledMatch1, ScheduledMatches.scheduledMatch2) === sut.getAvailableSchedules)
+  }
+
 }
