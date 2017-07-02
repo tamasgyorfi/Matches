@@ -1,16 +1,25 @@
 package hu.bets.matches.dataaccess
 
+import java.util.concurrent.TimeUnit
+
 import com.google.gson.Gson
 import hu.bets.matches.model.ScheduledMatch
 import org.apache.log4j.Logger
+import org.redisson.api.RedissonClient
 import redis.clients.jedis.{Jedis, JedisPool}
 
 import scala.collection.JavaConverters._
 
-class DefaultSchedulesDao(jedisPool: JedisPool) extends SchedulesDao {
+class DefaultSchedulesDao(jedisPool: JedisPool, redissonClient: RedissonClient) extends SchedulesDao {
 
+  private implicit val formats = net.liftweb.json.DefaultFormats
+
+  private val GSON: Gson = new Gson()
   private val LOGGER: Logger = Logger.getLogger(classOf[DefaultSchedulesDao])
   private val SCHEDULES_DB = 0
+  private val LOCK_TIMEOUT = 1000
+  private val SCHEDULES_LOCK_NAME = "schedules_lock"
+  private val SCHEDULES_KEY_PREFIX = "SCHEDULE:"
 
   /**
     * Saves a number of scheduled matches into the database.
@@ -19,8 +28,16 @@ class DefaultSchedulesDao(jedisPool: JedisPool) extends SchedulesDao {
     * @return the scheduled matches which could not be saved.
     */
   override def saveSchedules(schedules: List[ScheduledMatch]): List[ScheduledMatch] = {
-    clearCache()
-    saveScheduledMatches(schedules)
+    getJedisForSchedules match {
+      case Some(jedis) =>
+        clearCache(jedis)
+        val results = saveScheduledMatches(schedules, jedis)
+        jedis.close()
+        results
+      case None =>
+        LOGGER.info("Unable to acquire the Redis lock. saveSchedules() completes without refreshing schedules.")
+        List()
+    }
   }
 
   /**
@@ -29,46 +46,49 @@ class DefaultSchedulesDao(jedisPool: JedisPool) extends SchedulesDao {
     * @return schedules for the next days
     */
   override def getAvailableSchedules: List[ScheduledMatch] = {
-    val jedis = getJedisForSchedules
-    val keys = jedis.keys("*").asScala
+    getJedisForSchedules match {
+      case Some(jedis) =>
+        val keys = jedis.keys(SCHEDULES_KEY_PREFIX + "*").asScala
+        val jsonObjects = for (key <- keys) yield jedis.get(key)
 
-    val jsonObjects = for (key <- keys) yield jedis.get(key)
-    jedis.close()
-
-    jsonObjects.map(jsonObject => new Gson().fromJson(jsonObject, classOf[ScheduledMatch])).toList
+        jedis.close()
+        jsonObjects.map(jsonObject => GSON.fromJson(jsonObject, classOf[ScheduledMatch])).toList
+      case None =>
+        LOGGER.info("Unable to acquire Redis lock. getAvailableSchedules completes without real schedules.")
+        List()
+    }
   }
 
-  private def clearCache() = {
-    val jedis = getJedisForSchedules
+  private def clearCache(jedis: Jedis) = {
     jedis.flushDB()
-
-    jedis.close()
   }
 
-  private def saveScheduledMatches(schedules: List[ScheduledMatch]): List[ScheduledMatch] = {
-
-    val jedis = getJedisForSchedules
+  private def saveScheduledMatches(schedules: List[ScheduledMatch], jedis: Jedis): List[ScheduledMatch] = {
 
     var retVal: List[ScheduledMatch] = List()
     schedules.foreach(scheduledMatch => {
       try {
-        jedis.set(scheduledMatch.matchId, new Gson().toJson(scheduledMatch))
+        jedis.set(SCHEDULES_KEY_PREFIX + scheduledMatch.matchId, GSON.toJson(scheduledMatch))
       } catch {
-        case e: Exception => {
+        case e: Exception =>
           LOGGER.error("Exception caught while trying to save schedules. ", e)
           retVal = retVal.::(scheduledMatch)
-        }
       }
     })
-    jedis.close()
 
     retVal
   }
 
-  private def getJedisForSchedules: Jedis = {
+  private def getJedisForSchedules: Option[Jedis] = {
     val jedis = jedisPool.getResource
     jedis.select(SCHEDULES_DB)
 
-    jedis
+    val lock = redissonClient.getLock(SCHEDULES_LOCK_NAME)
+    if (lock.tryLock(LOCK_TIMEOUT, LOCK_TIMEOUT, TimeUnit.MILLISECONDS)) {
+      Some(jedis)
+    } else {
+      jedis.close()
+      None
+    }
   }
 }

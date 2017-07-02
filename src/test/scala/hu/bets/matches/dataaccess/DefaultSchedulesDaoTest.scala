@@ -1,13 +1,16 @@
 package hu.bets.matches.dataaccess
 
 import java.time.LocalDateTime
+import java.util.concurrent.TimeUnit
 
 import com.fiftyonred.mock_jedis.MockJedisPool
 import hu.bets.matches.ScheduledMatches
 import hu.bets.matches.model.{ScheduledMatch, Team}
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig
-import org.junit.Test
+import org.junit.{Before, Test}
 import org.mockito.Mockito.when
+import org.redisson.api.{RLock, RedissonClient}
+import org.redisson.config.Config
 import org.scalatest.junit.JUnitSuite
 import org.scalatest.mockito.MockitoSugar
 
@@ -15,7 +18,18 @@ class DefaultSchedulesDaoTest extends JUnitSuite with MockitoSugar {
 
   private val config: GenericObjectPoolConfig = new GenericObjectPoolConfig()
   private val jedisPool = new MockJedisPool(config, "test")
-  private val sut: DefaultSchedulesDao = new DefaultSchedulesDao(jedisPool)
+
+  private val redissonClient: RedissonClient = mock[RedissonClient]
+  private val lock: RLock = mock[RLock]
+  private var sut: DefaultSchedulesDao = _
+
+  @Before
+  def before(): Unit = {
+    when(redissonClient.getLock("schedules_lock")).thenReturn(lock)
+    when(lock.tryLock(1000, 1000, TimeUnit.MILLISECONDS)).thenReturn(true)
+
+    sut = new DefaultSchedulesDao(jedisPool, redissonClient)
+  }
 
   @Test
   def shouldInsertAScheduleOnlyOnce(): Unit = {
@@ -51,5 +65,12 @@ class DefaultSchedulesDaoTest extends JUnitSuite with MockitoSugar {
     sut.saveSchedules(entries)
 
     assert(entries === sut.getAvailableSchedules)
+  }
+
+  @Test
+  def availableSchedulesShouldBeEmptyWhenLockCannotBeAcquired(): Unit = {
+    when(lock.tryLock(1000, 1000, TimeUnit.MILLISECONDS)).thenReturn(true)
+
+    assert(List() === sut.getAvailableSchedules)
   }
 }

@@ -15,10 +15,6 @@ import scala.concurrent.duration._
 
 trait FootballMatchResource {
   implicit val timeout = Timeout(5 seconds)
-
-  private case class SecureScheduleRequest(token: String)
-  implicit val formats = DefaultFormats
-
   val route =
 
     pathPrefix("matches" / "football" / "v1") {
@@ -42,6 +38,9 @@ trait FootballMatchResource {
         }
     }
 
+  implicit val formats = DefaultFormats
 
   def newScheduledMatchesProviderActor(): ActorRef
+
+  private case class SecureScheduleRequest(token: String)
 }
