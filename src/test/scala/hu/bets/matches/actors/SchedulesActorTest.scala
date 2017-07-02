@@ -12,10 +12,6 @@ import org.junit.Test
 import org.mockito.Mockito._
 import org.scalatest.mockito.MockitoSugar
 
-import scala.concurrent.{Await, Future}
-import scala.concurrent.duration._
-import scala.concurrent.ExecutionContext.Implicits.global
-
 class SchedulesActorTest extends TestKit(ActorSystem("Test")) with ImplicitSender with MockitoSugar {
 
   private val matchInfoGateway = mock[MatchInfoGateway]

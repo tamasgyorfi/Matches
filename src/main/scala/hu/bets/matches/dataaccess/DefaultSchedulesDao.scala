@@ -3,8 +3,9 @@ package hu.bets.matches.dataaccess
 import com.google.gson.Gson
 import hu.bets.matches.model.ScheduledMatch
 import org.apache.log4j.Logger
-import redis.clients.jedis.JedisPool
+import redis.clients.jedis.{Jedis, JedisPool}
 
+import scala.collection.JavaConverters._
 
 class DefaultSchedulesDao(jedisPool: JedisPool) extends SchedulesDao {
 
@@ -22,10 +23,23 @@ class DefaultSchedulesDao(jedisPool: JedisPool) extends SchedulesDao {
     saveScheduledMatches(schedules)
   }
 
-  private def clearCache() = {
-    val jedis = jedisPool.getResource
+  /**
+    * Returns the schedules for the next days.
+    *
+    * @return schedules for the next days
+    */
+  override def getAvailableSchedules: List[ScheduledMatch] = {
+    val jedis = getJedisForSchedules
+    val keys = jedis.keys("*").asScala
 
-    jedis.select(SCHEDULES_DB)
+    val jsonObjects = for (key <- keys) yield jedis.get(key)
+    jedis.close()
+
+    jsonObjects.map(jsonObject => new Gson().fromJson(jsonObject, classOf[ScheduledMatch])).toList
+  }
+
+  private def clearCache() = {
+    val jedis = getJedisForSchedules
     jedis.flushDB()
 
     jedis.close()
@@ -33,8 +47,7 @@ class DefaultSchedulesDao(jedisPool: JedisPool) extends SchedulesDao {
 
   private def saveScheduledMatches(schedules: List[ScheduledMatch]): List[ScheduledMatch] = {
 
-    val jedis = jedisPool.getResource
-    jedis.select(SCHEDULES_DB)
+    val jedis = getJedisForSchedules
 
     var retVal: List[ScheduledMatch] = List()
     schedules.foreach(scheduledMatch => {
@@ -50,5 +63,12 @@ class DefaultSchedulesDao(jedisPool: JedisPool) extends SchedulesDao {
     jedis.close()
 
     retVal
+  }
+
+  private def getJedisForSchedules: Jedis = {
+    val jedis = jedisPool.getResource
+    jedis.select(SCHEDULES_DB)
+
+    jedis
   }
 }

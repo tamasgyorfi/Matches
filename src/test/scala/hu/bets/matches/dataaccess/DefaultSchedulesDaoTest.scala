@@ -6,10 +6,11 @@ import com.fiftyonred.mock_jedis.MockJedisPool
 import hu.bets.matches.model.{ScheduledMatch, Team}
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig
 import org.junit.Test
-import org.scalatest.mockito.MockitoSugar
 import org.mockito.Mockito.when
+import org.scalatest.junit.JUnitSuite
+import org.scalatest.mockito.MockitoSugar
 
-class DefaultSchedulesDaoTest extends MockitoSugar{
+class DefaultSchedulesDaoTest extends  JUnitSuite with MockitoSugar {
 
   private val scheduledMatch1 = ScheduledMatch("sr:match:11854534", LocalDateTime.parse("2017-06-27T16:00"), "UEFA Champions League 17/18", Team("Alashkert", "ALA", "Armenia"), Team("FC Santa Coloma", "FCC", "Andorra"))
   private val scheduledMatch2 = ScheduledMatch("sr:match:11854535", LocalDateTime.parse("2017-06-28T16:00"), "UEFA Champions League 17/18", Team("Alashkert", "ALA", "Armenia"), Team("FC Santa Coloma", "FCC", "Andorra"))
@@ -48,4 +49,11 @@ class DefaultSchedulesDaoTest extends MockitoSugar{
     assert(1 == retVal.size)
   }
 
+  @Test
+  def shouldReturnAllSchedules() : Unit = {
+    val entries = List(scheduledMatch1, scheduledMatch2)
+    sut.saveSchedules(entries)
+
+    assert(entries === sut.getAvailableSchedules)
+  }
 }
