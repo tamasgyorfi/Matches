@@ -10,7 +10,6 @@ import org.apache.commons.pool2.impl.GenericObjectPoolConfig
 import org.junit.{Before, Test}
 import org.mockito.Mockito.when
 import org.redisson.api.{RLock, RedissonClient}
-import org.redisson.config.Config
 import org.scalatest.junit.JUnitSuite
 import org.scalatest.mockito.MockitoSugar
 

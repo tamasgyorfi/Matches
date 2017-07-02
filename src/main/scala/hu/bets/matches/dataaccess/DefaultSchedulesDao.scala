@@ -9,6 +9,7 @@ import org.redisson.api.RedissonClient
 import redis.clients.jedis.{Jedis, JedisPool}
 
 import scala.collection.JavaConverters._
+import scala.util.control.Breaks._
 
 class DefaultSchedulesDao(jedisPool: JedisPool, redissonClient: RedissonClient) extends SchedulesDao {
 
@@ -46,7 +47,7 @@ class DefaultSchedulesDao(jedisPool: JedisPool, redissonClient: RedissonClient) 
     * @return schedules for the next days
     */
   override def getAvailableSchedules: List[ScheduledMatch] = {
-    getJedisForSchedules match {
+    retryGetLock(3) match {
       case Some(jedis) =>
         val keys = jedis.keys(SCHEDULES_KEY_PREFIX + "*").asScala
         val jsonObjects = for (key <- keys) yield jedis.get(key)
@@ -77,6 +78,21 @@ class DefaultSchedulesDao(jedisPool: JedisPool, redissonClient: RedissonClient) 
     })
 
     retVal
+  }
+
+  private def retryGetLock(nrOfTimes: Int): Option[Jedis] = {
+    var jedisOption: Option[Jedis] = None
+
+    breakable {
+      for (i <- 1 to nrOfTimes) {
+        jedisOption = getJedisForSchedules
+        if (jedisOption.isDefined)
+          break
+        else
+          TimeUnit.MILLISECONDS.sleep(500)
+      }
+    }
+    jedisOption
   }
 
   private def getJedisForSchedules: Option[Jedis] = {
