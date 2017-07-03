@@ -54,9 +54,9 @@ class DefaultSchedulesDao(jedisPool: JedisPool, lock: RReadWriteLock) extends Sc
   override def getAvailableSchedules: List[ScheduledMatch] = {
     var result: List[ScheduledMatch] = List()
     breakable {
-      for (i <- 1 to NR_OF_RETRIES) {
-        result = getSchedules()
-        if (!result.isEmpty) {
+      for (_ <- 1 to NR_OF_RETRIES) {
+        result = getSchedules
+        if (result.nonEmpty) {
           break
         }
       }
@@ -65,7 +65,7 @@ class DefaultSchedulesDao(jedisPool: JedisPool, lock: RReadWriteLock) extends Sc
     result
   }
 
-  private def getSchedules(): List[ScheduledMatch] = {
+  private def getSchedules: List[ScheduledMatch] = {
     val jedis: Jedis = getJedis
     val readLock = lock.readLock()
 
