@@ -4,13 +4,13 @@ import akka.actor.Actor
 import hu.bets.matches.dataaccess.SchedulesDao
 import hu.bets.matches.gateway.{MatchInfoGateway, ScheduleRetrievalException}
 import hu.bets.matches.model.ScheduledMatch
-import org.apache.log4j.Logger
+import org.slf4j.{Logger, LoggerFactory}
 
 case class ScheduleRequest() {}
 
 class SchedulesActor(matchInfoGateway: MatchInfoGateway, schedulesDao: SchedulesDao) extends Actor {
 
-  private val LOGGER: Logger = Logger.getLogger(classOf[SchedulesActor])
+  private val LOGGER: Logger = LoggerFactory.getLogger(classOf[SchedulesActor])
 
   override def receive: Receive = {
     case ScheduleRequest =>

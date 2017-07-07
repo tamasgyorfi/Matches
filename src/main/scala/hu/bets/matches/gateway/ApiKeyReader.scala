@@ -1,6 +1,6 @@
 package hu.bets.matches.gateway
 
-import org.apache.log4j.Logger
+import org.slf4j.{Logger, LoggerFactory}
 
 import scala.io.Source
 
@@ -12,7 +12,7 @@ class ApiKeyReader extends KeyReader {
 
   object ApiKeyReaderObject {
 
-    val logger: Logger = Logger.getLogger(classOf[ApiKeyReader])
+    val logger: Logger = LoggerFactory.getLogger(classOf[ApiKeyReader])
 
     private def readApiKey(): String = {
 

@@ -5,11 +5,11 @@ import akka.http.scaladsl.Http
 import hu.bets.matches.actors.SceduledMatchesProviderActor
 import hu.bets.matches.config.ApplicationConfig
 import hu.bets.matches.web.api.FootballMatchResource
-import org.apache.log4j.Logger
+import org.slf4j.{Logger, LoggerFactory}
 
 private class Starter extends FootballMatchResource {
 
-  private val LOGGER: Logger = Logger.getLogger(classOf[Starter])
+  private val LOGGER: Logger = LoggerFactory.getLogger(classOf[Starter])
 
   private implicit val system = AkkaSingletons.getActorSystem
   private implicit val materializer = AkkaSingletons.getMaterializer

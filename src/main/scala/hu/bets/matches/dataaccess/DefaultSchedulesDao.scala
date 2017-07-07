@@ -4,8 +4,8 @@ import java.util.concurrent.TimeUnit
 
 import com.google.gson.Gson
 import hu.bets.matches.model.ScheduledMatch
-import org.apache.log4j.Logger
 import org.redisson.api.RReadWriteLock
+import org.slf4j.{Logger, LoggerFactory}
 import redis.clients.jedis.{Jedis, JedisPool}
 
 import scala.collection.JavaConverters._
@@ -16,7 +16,7 @@ class DefaultSchedulesDao(jedisPool: JedisPool, lock: RReadWriteLock) extends Sc
   private implicit val formats = net.liftweb.json.DefaultFormats
 
   private val GSON: Gson = new Gson()
-  private val LOGGER: Logger = Logger.getLogger(classOf[DefaultSchedulesDao])
+  private val LOGGER: Logger = LoggerFactory.getLogger(classOf[DefaultSchedulesDao])
   private val SCHEDULES_DB = 0
   private val LOCK_TIMEOUT = 1000
   private val SCHEDULES_KEY_PREFIX = "SCHEDULE:"

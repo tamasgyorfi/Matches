@@ -10,7 +10,7 @@ import hu.bets.matches.model.ScheduledMatch
 import org.apache.http.client.methods.HttpGet
 import org.apache.http.impl.client.HttpClientBuilder
 import org.apache.http.util.EntityUtils
-import org.apache.log4j.Logger
+import org.slf4j.{Logger, LoggerFactory}
 
 
 trait DateProvider {
@@ -21,7 +21,7 @@ trait DateProvider {
 
 class MatchInfoGateway(keyReader: KeyReader) extends DateProvider {
 
-  private val LOGGER: Logger = Logger.getLogger(classOf[MatchInfoGateway])
+  private val LOGGER: Logger = LoggerFactory.getLogger(classOf[MatchInfoGateway])
 
   private val BASE_API = "%s://api.sportradar.us/soccer-%s%d/eu/en/schedules/%s/%s.%s?api_key=%s"
   private val PROTOCOL = "https"

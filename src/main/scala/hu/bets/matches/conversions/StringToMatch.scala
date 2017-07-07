@@ -6,7 +6,7 @@ import java.time.format.DateTimeFormatter
 import com.jayway.jsonpath.{Configuration, JsonPath}
 import hu.bets.matches.model.{ScheduledMatch, Team}
 import net.minidev.json.JSONArray
-import org.apache.log4j.Logger
+import org.slf4j.{Logger, LoggerFactory}
 
 object StringToMatch {
 
@@ -18,7 +18,7 @@ object StringToMatch {
   private val COUNTRY = "$.country"
   private val COMPETITORS = "$.competitors[%d]"
 
-  private val LOGGER: Logger = Logger.getLogger("StringToMatch")
+  private val LOGGER: Logger = LoggerFactory.getLogger("StringToMatch")
 
   implicit def stringToMatches(payload: String): List[Option[ScheduledMatch]] = {
     val document = Configuration.defaultConfiguration.jsonProvider.parse(payload)
