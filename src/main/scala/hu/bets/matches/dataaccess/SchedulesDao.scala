@@ -17,5 +17,5 @@ trait SchedulesDao {
     *
     * @return schedules for the next days
     */
-  def getAvailableSchedules: List[ScheduledMatch]
+  def getAvailableSchedules: List[String]
 }

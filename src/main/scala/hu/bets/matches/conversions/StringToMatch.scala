@@ -21,6 +21,15 @@ object StringToMatch {
   private val LOGGER: Logger = LoggerFactory.getLogger("StringToMatch")
 
   implicit def stringToMatches(payload: String): List[Option[ScheduledMatch]] = {
+
+    if (payload.contains("No events scheduled for this date.")) {
+      List(None)
+    } else {
+      convert(payload)
+    }
+  }
+
+  private def convert(payload: String): List[Option[ScheduledMatch]] = {
     val document = Configuration.defaultConfiguration.jsonProvider.parse(payload)
     val eventsArray: JSONArray = JsonPath.read(document, "$.sport_events")
 

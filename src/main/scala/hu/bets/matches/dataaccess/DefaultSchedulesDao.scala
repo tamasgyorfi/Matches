@@ -51,8 +51,8 @@ class DefaultSchedulesDao(jedisPool: JedisPool, lock: RReadWriteLock) extends Sc
     *
     * @return schedules for the next days
     */
-  override def getAvailableSchedules: List[ScheduledMatch] = {
-    var result: List[ScheduledMatch] = List()
+  override def getAvailableSchedules: List[String] = {
+    var result: List[String] = List()
     breakable {
       for (_ <- 1 to NR_OF_RETRIES) {
         result = getSchedules
@@ -65,17 +65,18 @@ class DefaultSchedulesDao(jedisPool: JedisPool, lock: RReadWriteLock) extends Sc
     result
   }
 
-  private def getSchedules: List[ScheduledMatch] = {
+  private def getSchedules: List[String] = {
     val jedis: Jedis = getJedis
     val readLock = lock.readLock()
 
     if (readLock.tryLock(LOCK_TIMEOUT, LOCK_TIMEOUT, TimeUnit.MILLISECONDS)) {
+      LOGGER.info("Redis locked for reading.")
       try {
         val keys = jedis.keys(SCHEDULES_KEY_PREFIX + "*").asScala
+        LOGGER.info("Redis keys {}", keys)
         val jsonObjects = for (key <- keys) yield jedis.get(key)
-
-        jedis.close()
-        jsonObjects.map(jsonObject => GSON.fromJson(jsonObject, classOf[ScheduledMatch])).toList
+        LOGGER.info("Redis values: {}", jsonObjects)
+        jsonObjects.toList
       } finally {
         readLock.unlock()
         jedis.close()
@@ -85,15 +86,11 @@ class DefaultSchedulesDao(jedisPool: JedisPool, lock: RReadWriteLock) extends Sc
     }
   }
 
-  private def clearCache(jedis: Jedis)
-
-  = {
+  private def clearCache(jedis: Jedis) = {
     jedis.flushDB()
   }
 
-  private def saveScheduledMatches(schedules: List[ScheduledMatch], jedis: Jedis): List[ScheduledMatch]
-
-  = {
+  private def saveScheduledMatches(schedules: List[ScheduledMatch], jedis: Jedis): List[ScheduledMatch] = {
 
     var retVal: List[ScheduledMatch] = List()
     schedules.foreach(scheduledMatch => {

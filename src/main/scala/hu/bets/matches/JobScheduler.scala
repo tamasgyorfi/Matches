@@ -9,7 +9,7 @@ import scala.concurrent.duration._
 class JobScheduler(schedulesActor: ActorRef, resultsActor: ActorRef) {
 
   def schedule(): Unit = {
-    AkkaSingletons.getScheduler.schedule(0 hours, 3 hours, schedulesActor, ScheduleRequest())
+    AkkaSingletons.getScheduler.schedule(0 hours, 3 hours, schedulesActor, ScheduleRequest)
     AkkaSingletons.getScheduler.schedule(0 hours, 3 hours, null)
   }
 }

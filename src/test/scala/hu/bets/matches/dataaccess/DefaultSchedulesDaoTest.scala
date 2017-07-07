@@ -69,7 +69,7 @@ class DefaultSchedulesDaoTest extends JUnitSuite with MockitoSugar {
     val entries = List(ScheduledMatches.scheduledMatch1, ScheduledMatches.scheduledMatch2)
     sut.saveSchedules(entries)
 
-    assert(entries === sut.getAvailableSchedules)
+    assert(ScheduledMatches.result === sut.getAvailableSchedules)
   }
 
   @Test
@@ -85,7 +85,7 @@ class DefaultSchedulesDaoTest extends JUnitSuite with MockitoSugar {
     when(readLock.tryLock(1000, 1000, TimeUnit.MILLISECONDS)).thenReturn(false).thenReturn(false).thenReturn(true)
     val retVal = sut.saveSchedules(List(ScheduledMatches.scheduledMatch1, ScheduledMatches.scheduledMatch2))
 
-    assert(List(ScheduledMatches.scheduledMatch1, ScheduledMatches.scheduledMatch2) === sut.getAvailableSchedules)
+    assert(ScheduledMatches.result === sut.getAvailableSchedules)
   }
 
 }

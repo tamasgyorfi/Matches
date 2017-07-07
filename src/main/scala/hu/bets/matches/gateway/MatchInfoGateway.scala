@@ -69,9 +69,13 @@ class MatchInfoGateway(keyReader: KeyReader) extends DateProvider {
   def getScheduledMatches(nrOfDays: Int): List[ScheduledMatch] = {
     try {
       val json = getSchedules(nrOfDays)
-      json.flatMap(oneDayJson => parse(oneDayJson))
+      json.flatMap(oneDayJson => parse(oneDayJson)
+      )
     } catch {
-      case e: Exception => throw new ScheduleRetrievalException(e)
+      case e: Exception => {
+        e.printStackTrace()
+        throw new ScheduleRetrievalException(e)
+      }
     }
   }
 }

@@ -1,13 +1,13 @@
 package hu.bets.matches
 
-import akka.actor.{ActorRef, Props}
+import akka.actor.ActorRef
 import akka.http.scaladsl.Http
-import hu.bets.matches.actors.SceduledMatchesProviderActor
+import hu.bets.common.util.EnvironmentVarResolver
 import hu.bets.matches.config.ApplicationConfig
 import hu.bets.matches.web.api.FootballMatchResource
 import org.slf4j.{Logger, LoggerFactory}
 
-private class Starter extends FootballMatchResource {
+private class Starter extends FootballMatchResource with ApplicationConfig {
 
   private val LOGGER: Logger = LoggerFactory.getLogger(classOf[Starter])
 
@@ -15,10 +15,13 @@ private class Starter extends FootballMatchResource {
   private implicit val materializer = AkkaSingletons.getMaterializer
   private implicit val executionContext = system.dispatcher
 
-  private val applicationConfig: ApplicationConfig = new ApplicationConfig
+  def run(): Unit = {
+    run(getJobsScheduler)
+  }
 
-  def run() {
-    val bindingFuture = Http().bindAndHandle(route, "localhost", 8080);//EnvironmentVarResolver.getEnvVar("HOST"), EnvironmentVarResolver.getEnvVar("PORT").toInt)
+  private def run(jobScheduler: JobScheduler) {
+    val bindingFuture = Http().bindAndHandle(route, EnvironmentVarResolver.getEnvVar("HOST"), EnvironmentVarResolver.getEnvVar("PORT").toInt)
+    jobScheduler.schedule()
 
     LOGGER.info("Matches service up and running.")
 
@@ -31,7 +34,7 @@ private class Starter extends FootballMatchResource {
       .onComplete(_ => system.terminate())
   }
 
-  override def newScheduledMatchesProviderActor: ActorRef = AkkaSingletons.getActorSystem.actorOf(Props(new SceduledMatchesProviderActor(applicationConfig.getMatchService)))
+  override def newScheduledMatchesProviderActor(): ActorRef = getSchedulesProvider
 }
 
 object Starter extends App {
