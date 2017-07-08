@@ -2,6 +2,7 @@ package hu.bets.matches
 
 import akka.actor.ActorRef
 import akka.http.scaladsl.Http
+import hu.bets.common.services.Services
 import hu.bets.common.util.EnvironmentVarResolver
 import hu.bets.matches.config.ApplicationConfig
 import hu.bets.matches.web.api.FootballMatchResource
@@ -16,6 +17,12 @@ private class Starter extends FootballMatchResource with ApplicationConfig {
   private implicit val executionContext = system.dispatcher
 
   def run(): Unit = {
+    val eurekaClient = getEurekaClient
+    eurekaClient.registerNonBlockingly(Services.MATCHES.getServiceName)
+    Runtime.getRuntime.addShutdownHook(new Thread {
+      eurekaClient.unregister()
+    })
+
     run(getJobsScheduler)
   }
 

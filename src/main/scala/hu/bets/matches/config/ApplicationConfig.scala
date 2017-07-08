@@ -4,6 +4,7 @@ import java.net.URI
 
 import akka.actor.{ActorRef, Props}
 import hu.bets.common.util.EnvironmentVarResolver
+import hu.bets.common.util.servicediscovery.{DefaultEurekaFacade, EurekaFacade}
 import hu.bets.matches.actors.{SceduledMatchesProviderActor, SchedulesActor}
 import hu.bets.matches.dataaccess.{DefaultSchedulesDao, SchedulesDao}
 import hu.bets.matches.gateway.{ApiKeyReader, KeyReader, MatchInfoGateway}
@@ -67,5 +68,9 @@ trait ApplicationConfig {
     val matchInfoGateway = getMatchInfoGateway(getKeyReader)
     val schedulesActor = getSchedulesActor(matchInfoGateway, getSchedulesDao)
     getJobScheduler(schedulesActor, null)
+  }
+
+  def getEurekaClient: EurekaFacade = {
+    new DefaultEurekaFacade()
   }
 }
