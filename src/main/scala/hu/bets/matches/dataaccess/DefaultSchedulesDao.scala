@@ -19,7 +19,7 @@ class DefaultSchedulesDao(jedisPool: JedisPool, lock: RReadWriteLock) extends Sc
   private val LOGGER: Logger = LoggerFactory.getLogger(classOf[DefaultSchedulesDao])
   private val SCHEDULES_DB = 0
   private val LOCK_TIMEOUT = 1000
-  private val SCHEDULES_KEY_PREFIX = "SCHEDULE:"
+  private val SCHEDULES_KEY = "SCHEDULES"
   private val NR_OF_RETRIES = 3
 
   /**
@@ -72,11 +72,9 @@ class DefaultSchedulesDao(jedisPool: JedisPool, lock: RReadWriteLock) extends Sc
     if (readLock.tryLock(LOCK_TIMEOUT, LOCK_TIMEOUT, TimeUnit.MILLISECONDS)) {
       LOGGER.info("Redis locked for reading.")
       try {
-        val keys = jedis.keys(SCHEDULES_KEY_PREFIX + "*").asScala
-        LOGGER.info("Redis keys {}", keys)
-        val jsonObjects = for (key <- keys) yield jedis.get(key)
-        LOGGER.info("Redis values: {}", jsonObjects)
-        jsonObjects.toList
+        val values = jedis.smembers(SCHEDULES_KEY).asScala
+        LOGGER.info("Redis values: {}", values)
+        values.toList
       } finally {
         readLock.unlock()
         jedis.close()
@@ -95,7 +93,7 @@ class DefaultSchedulesDao(jedisPool: JedisPool, lock: RReadWriteLock) extends Sc
     var retVal: List[ScheduledMatch] = List()
     schedules.foreach(scheduledMatch => {
       try {
-        jedis.set(SCHEDULES_KEY_PREFIX + scheduledMatch.matchId, GSON.toJson(scheduledMatch))
+        jedis.sadd(SCHEDULES_KEY, GSON.toJson(scheduledMatch))
       } catch {
         case e: Exception =>
           LOGGER.error("Exception caught while trying to save schedules. ", e)

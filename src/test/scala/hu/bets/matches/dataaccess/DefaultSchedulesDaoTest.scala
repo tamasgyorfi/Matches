@@ -36,9 +36,10 @@ class DefaultSchedulesDaoTest extends JUnitSuite with MockitoSugar {
 
   @Test
   def shouldInsertAScheduleOnlyOnce(): Unit = {
-    sut.saveSchedules(List(ScheduledMatches.scheduledMatch1, ScheduledMatches.scheduledMatch2, ScheduledMatches.scheduledMatch3))
+    sut.saveSchedules(List(ScheduledMatches.scheduledMatch1, ScheduledMatches.scheduledMatch2))
 
-    assert(2 == jedisPool.getResource.keys("*").size)
+    assert(1 == jedisPool.getResource.keys("*").size)
+    assert(2 == jedisPool.getResource.smembers("SCHEDULES").size())
   }
 
   @Test
