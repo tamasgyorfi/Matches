@@ -18,15 +18,14 @@ private class Starter extends FootballMatchResource with ApplicationConfig {
 
   def run(): Unit = {
     val eurekaClient = getEurekaClient
-    eurekaClient.registerNonBlockingly(Services.MATCHES.getServiceName)
-    Runtime.getRuntime.addShutdownHook(new Thread {
-      eurekaClient.unregister()
-    })
+    val reg = eurekaClient.registerNonBlockingly(Services.MATCHES.getServiceName)
+    val hook = sys.addShutdownHook(() => eurekaClient.unregister())
 
     run(getJobsScheduler)
   }
 
   private def run(jobScheduler: JobScheduler) {
+    LOGGER.info("Initializing the web server.")
     val bindingFuture = Http().bindAndHandle(route, EnvironmentVarResolver.getEnvVar("HOST"), EnvironmentVarResolver.getEnvVar("PORT").toInt)
     jobScheduler.schedule()
 
