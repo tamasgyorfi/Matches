@@ -159,6 +159,9 @@
     </dependencies>
 
     <build>
+
+        <finalName>football-matches</finalName>
+
         <plugins>
             <plugin>
                 <groupId>net.alchim31.maven</groupId>
@@ -243,6 +246,7 @@
                                     <resource>reference.conf</resource>
                                 </transformer>
                             </transformers>
+                            <finalName>football-matches</finalName>
                         </configuration>
                     </execution>
                 </executions>
