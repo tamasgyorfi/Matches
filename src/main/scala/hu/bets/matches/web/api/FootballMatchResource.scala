@@ -2,7 +2,7 @@ package hu.bets.matches.web.api
 
 import akka.actor.ActorRef
 import akka.http.scaladsl.model.{ContentTypes, HttpEntity}
-import akka.http.scaladsl.server.Directives._
+import akka.http.scaladsl.server.Directives.{complete, _}
 import akka.pattern.ask
 import akka.util.Timeout
 import hu.bets.matches.actors.{ScheduledMatchesRequest, ScheduledMatchesResponse}
@@ -29,16 +29,28 @@ trait FootballMatchResource {
         post {
           path("schedules") {
             entity(as[String]) { request => {
-              val resultFuture = newScheduledMatchesProviderActor() ? ScheduledMatchesRequest
-              val result = Await.result(resultFuture, timeout.duration).asInstanceOf[ScheduledMatchesResponse]
-
-              val retVal = """{"matches":[""" + result.scheduledMatches.mkString(", ") +"""],"token":"""" + result.token +""""}"""
-              complete(HttpEntity(ContentTypes.`application/json`, retVal))
+              try {
+                val retVal = processRequest(request)
+                complete(HttpEntity(ContentTypes.`application/json`, retVal))
+              } catch {
+                case e: Exception => complete(HttpEntity(ContentTypes.`application/json`, getErrorResponse(e.getMessage, "")))
+              }
             }
             }
           }
         }
     }
+
+  private def processRequest(request: String): String = {
+    val resultFuture = newScheduledMatchesProviderActor() ? ScheduledMatchesRequest
+    val result = Await.result(resultFuture, timeout.duration).asInstanceOf[ScheduledMatchesResponse]
+
+    """{"matches":[""" + result.scheduledMatches.mkString(", ") +"""],"error":"","token":"""" + result.token +""""}"""
+  }
+
+  private def getErrorResponse(cause: String, token: String): String = {
+    """{"matches":[], "error":"%s", "token":"%s"}""".format(cause, token)
+  }
 
   def newScheduledMatchesProviderActor(): ActorRef
 }
