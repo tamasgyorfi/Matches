@@ -2,7 +2,7 @@ package hu.bets.matches.actors
 
 import akka.actor.Actor
 import hu.bets.matches.dataaccess.SchedulesDao
-import hu.bets.matches.gateway.{MatchInfoGateway, ScheduleRetrievalException}
+import hu.bets.matches.gateway.{MatchInfoGateway, DataRetrievalException}
 import hu.bets.matches.model.ScheduledMatch
 import org.slf4j.{Logger, LoggerFactory}
 
@@ -17,7 +17,7 @@ class SchedulesActor(matchInfoGateway: MatchInfoGateway, schedulesDao: Schedules
       try {
         saveSchedules(getSchedules)
       } catch {
-        case e: ScheduleRetrievalException => LOGGER error("Exception while trying to retrieve schedules. ", e)
+        case e: DataRetrievalException => LOGGER error("Exception while trying to retrieve schedules. ", e)
         case ex: Exception => LOGGER error("Exception while trying to save schedules. ", ex)
       }
 

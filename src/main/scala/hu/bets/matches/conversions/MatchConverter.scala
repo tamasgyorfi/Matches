@@ -3,12 +3,10 @@ package hu.bets.matches.conversions
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-import com.jayway.jsonpath.{Configuration, JsonPath}
+import com.jayway.jsonpath.JsonPath
 import hu.bets.matches.model.{ScheduledMatch, Team}
-import net.minidev.json.JSONArray
-import org.slf4j.{Logger, LoggerFactory}
 
-object StringToMatch {
+object MatchConverter {
 
   private val TEAM_NAME = "$.name"
   private val SCHEDULE_ID = "$.id"
@@ -18,36 +16,8 @@ object StringToMatch {
   private val COUNTRY = "$.country"
   private val COMPETITORS = "$.competitors[%d]"
 
-  private val LOGGER: Logger = LoggerFactory.getLogger("StringToMatch")
-
-  implicit def stringToMatches(payload: String): List[Option[ScheduledMatch]] = {
-
-    if (payload.contains("No events scheduled for this date.")) {
-      List(None)
-    } else {
-      convert(payload)
-    }
-  }
-
-  private def convert(payload: String): List[Option[ScheduledMatch]] = {
-    val document = Configuration.defaultConfiguration.jsonProvider.parse(payload)
-    val eventsArray: JSONArray = JsonPath.read(document, "$.sport_events")
-
-    Range(0, eventsArray.size() - 1).map(index => {
-      try {
-        val game = getMatch(eventsArray.get(index))
-        LOGGER.info("Read match from JSON: " + game)
-
-        Some(game)
-      } catch {
-        case e: Exception =>
-          LOGGER.info("Exception caught", e)
-          Option.empty
-      }
-    }).toList
-  }
-
   implicit def stringToLocalDateTime(s: String): LocalDateTime = {
+
     LocalDateTime.parse(s, DateTimeFormatter.ISO_OFFSET_DATE_TIME)
   }
 
@@ -57,7 +27,7 @@ object StringToMatch {
       JsonPath.read(document, COUNTRY).toString)
   }
 
-  private def getMatch(document: Object) = {
+  def getMatch(document: Object): ScheduledMatch = {
     ScheduledMatch(
       JsonPath.read(document, SCHEDULE_ID).toString,
       JsonPath.read(document, DATE).toString,

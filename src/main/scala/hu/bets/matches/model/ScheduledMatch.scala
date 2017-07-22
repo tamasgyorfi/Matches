@@ -8,6 +8,6 @@ case class ScheduledMatch(matchId: String,
                           homeTeam: Team,
                           awayTeam: Team) {
 
-  override def toString: String = "{ matchId: " + matchId + " date: " + date + " competition: " + competition + " homeTeam: " + homeTeam + " awayTeam: " + awayTeam + "}";
+  override def toString: String = "{ matchId: " + matchId + " date: " + date + " competition: " + competition + " homeTeam: " + homeTeam + " awayTeam: " + awayTeam + "}"
 
 }
