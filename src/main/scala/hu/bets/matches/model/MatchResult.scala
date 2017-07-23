@@ -1,6 +1,10 @@
 package hu.bets.matches.model
 
-case class MatchResult(scheduledMatch: ScheduledMatch, homeTeamGoals: Int, awayTeamGoals: Int) {
+case class Result(homeTeamName: String, awayTeamName: String, matchId: String, competitionId: String,
+                  homeTeamGoals: Int, awayTeamGoals: Int) {
 
-  override def toString: String = "{homeTeamgoals: " + homeTeamGoals + ", awayTeamGoals: " + awayTeamGoals + ", " + scheduledMatch.toString + "}"
+  override def toString: String = "{homeTeamgoals: " + homeTeamGoals + ", awayTeamGoals: " + awayTeamGoals + ", " +
+    "homeTeamName: " + homeTeamName + ", awayTeamName:" + awayTeamName + ", matchId: " + matchId + ", competitionId: " + competitionId + "}"
+}
+case class MatchResult(result: Result) {
 }

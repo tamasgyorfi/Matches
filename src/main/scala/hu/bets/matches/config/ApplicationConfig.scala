@@ -5,10 +5,11 @@ import java.net.URI
 import akka.actor.{ActorRef, Props}
 import hu.bets.common.util.EnvironmentVarResolver
 import hu.bets.common.util.servicediscovery.{DefaultEurekaFacade, EurekaFacade}
-import hu.bets.matches.actors.{SceduledMatchesProviderActor, SchedulesActor}
+import hu.bets.matches.actors.{ResultsActor, SceduledMatchesProviderActor, SchedulesActor}
 import hu.bets.matches.dataaccess.{DefaultSchedulesDao, SchedulesDao}
 import hu.bets.matches.gateway.{ApiKeyReader, KeyReader, MatchInfoGateway}
 import hu.bets.matches.service.{DefaultMatchesService, MatchesService}
+import hu.bets.matches.web.{MatchResultSender, PostRequestSender}
 import hu.bets.matches.{AkkaSingletons, JobScheduler}
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig
 import org.redisson.Redisson
@@ -47,30 +48,31 @@ trait ApplicationConfig {
     def getRedisLock: RReadWriteLock = redisLock
   }
 
-  private def getSchedulesDao: SchedulesDao = new DefaultSchedulesDao(JedisConfig.getJedisPool, JedisConfig.getRedisLock)
-
-  private def getMatchService: MatchesService = new DefaultMatchesService(getSchedulesDao)
+  object BasicAppConfig {
+    val getSchedulesDao: SchedulesDao = new DefaultSchedulesDao(JedisConfig.getJedisPool, JedisConfig.getRedisLock)
+    val getMatchService: MatchesService = new DefaultMatchesService(getSchedulesDao)
+    val getKeyReader = new ApiKeyReader
+    val getMatchInfoGateway = new MatchInfoGateway(getKeyReader)
+    val getEurekaClient: EurekaFacade = new DefaultEurekaFacade
+    val getPostRequestSender: PostRequestSender = new PostRequestSender
+    val getResultsSender: MatchResultSender = new MatchResultSender(getEurekaClient, getPostRequestSender)
+  }
 
   private def getJobScheduler(schedules: ActorRef, results: ActorRef): JobScheduler = new JobScheduler(schedules, results)
-
-  private def getKeyReader = new ApiKeyReader
-
-  private def getMatchInfoGateway(keyReader: KeyReader) = new MatchInfoGateway(keyReader)
 
   private def getSchedulesActor(matchInfoGateway: MatchInfoGateway, schedulesDao: SchedulesDao) =
     AkkaSingletons.getActorSystem.actorOf(Props(new SchedulesActor(matchInfoGateway, schedulesDao)))
 
   def getSchedulesProvider: ActorRef =
-    AkkaSingletons.getActorSystem.actorOf(Props(new SceduledMatchesProviderActor(getMatchService)))
+    AkkaSingletons.getActorSystem.actorOf(Props(new SceduledMatchesProviderActor(BasicAppConfig.getMatchService)))
 
+  def getMatchesActor: ActorRef =
+    AkkaSingletons.getActorSystem.actorOf(Props(new ResultsActor(BasicAppConfig.getMatchInfoGateway, BasicAppConfig.getResultsSender)))
 
   def getJobsScheduler: JobScheduler = {
-    val matchInfoGateway = getMatchInfoGateway(getKeyReader)
-    val schedulesActor = getSchedulesActor(matchInfoGateway, getSchedulesDao)
-    getJobScheduler(schedulesActor, null)
-  }
-
-  def getEurekaClient: EurekaFacade = {
-    new DefaultEurekaFacade()
+    val matchInfoGateway = BasicAppConfig.getMatchInfoGateway
+    val schedulesActor = getSchedulesActor(matchInfoGateway, BasicAppConfig.getSchedulesDao)
+    val matchesActor = getMatchesActor
+    getJobScheduler(schedulesActor, matchesActor)
   }
 }

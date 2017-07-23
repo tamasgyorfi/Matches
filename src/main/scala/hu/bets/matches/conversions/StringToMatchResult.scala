@@ -1,7 +1,7 @@
 package hu.bets.matches.conversions
 
 import com.jayway.jsonpath.{Configuration, JsonPath}
-import hu.bets.matches.model.{MatchResult, ScheduledMatch}
+import hu.bets.matches.model.{MatchResult, Result}
 import net.minidev.json.JSONArray
 import org.slf4j.{Logger, LoggerFactory}
 
@@ -32,11 +32,9 @@ object StringToMatchResult {
     Range ( 0, eventsArray.size () ).map ( index => {
       try {
         val event: Object = JsonPath.read ( eventsArray.get ( index ), SPORT_EVENT )
-        val game = MatchConverter.getMatch ( event )
-        LOGGER.info ( "Read match from JSON: " + game )
-
         val status: Object = JsonPath.read ( eventsArray.get ( index ), SPORT_EVENT_STATUS )
-        createMatchResult ( game, status )
+
+        createMatchResult ( event, status )
       } catch {
         case e: Exception =>
           LOGGER.info ( "Exception caught", e )
@@ -45,11 +43,14 @@ object StringToMatchResult {
     } ).toList
   }
 
-  def createMatchResult(game: ScheduledMatch, status: Object): Option[MatchResult] = {
+  def createMatchResult(event: Object, status: Object): Option[MatchResult] = {
     if (matchEnded ( status )) {
-      Some ( MatchResult ( game,
+      val game = MatchConverter.getMatch ( event )
+      Some ( MatchResult ( Result(game.homeTeam.name, game.awayTeam.name,
+        game.matchId, game.competition,
         JsonPath.read ( status, HOME_GOALS ).toString.toInt,
-        JsonPath.read ( status, AWAY_GOALS ).toString.toInt ) )
+        JsonPath.read ( status, AWAY_GOALS ).toString.toInt ) ))
+
     } else None
   }
 
