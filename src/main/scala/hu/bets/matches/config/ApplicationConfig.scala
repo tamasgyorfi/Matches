@@ -4,13 +4,13 @@ import java.net.URI
 
 import akka.actor.{ActorRef, Props}
 import hu.bets.common.util.EnvironmentVarResolver
-import hu.bets.common.util.servicediscovery.{DefaultEurekaFacade, EurekaFacade}
 import hu.bets.matches.actors.{ResultsActor, SceduledMatchesProviderActor, SchedulesActor}
 import hu.bets.matches.dataaccess.{DefaultSchedulesDao, SchedulesDao}
-import hu.bets.matches.gateway.{ApiKeyReader, KeyReader, MatchInfoGateway}
+import hu.bets.matches.gateway.{ApiKeyReader, MatchInfoGateway}
 import hu.bets.matches.service.{DefaultMatchesService, MatchesService}
 import hu.bets.matches.web.{MatchResultSender, PostRequestSender}
 import hu.bets.matches.{AkkaSingletons, JobScheduler}
+import hu.bets.servicediscovery.{EurekaFacade, EurekaFacadeImpl}
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig
 import org.redisson.Redisson
 import org.redisson.api.RReadWriteLock
@@ -53,7 +53,7 @@ trait ApplicationConfig {
     val getMatchService: MatchesService = new DefaultMatchesService(getSchedulesDao)
     val getKeyReader = new ApiKeyReader
     val getMatchInfoGateway = new MatchInfoGateway(getKeyReader)
-    val getEurekaClient: EurekaFacade = new DefaultEurekaFacade
+    val getEurekaClient: EurekaFacade = new EurekaFacadeImpl(EnvironmentVarResolver.getEnvVar("EUREKA_URL"))
     val getPostRequestSender: PostRequestSender = new PostRequestSender
     val getResultsSender: MatchResultSender = new MatchResultSender(getEurekaClient, getPostRequestSender)
   }

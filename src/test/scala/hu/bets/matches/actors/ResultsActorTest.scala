@@ -4,13 +4,14 @@ import java.util.concurrent.TimeUnit
 
 import akka.actor.{ActorSystem, Props}
 import akka.testkit.{ImplicitSender, TestKit}
-import hu.bets.common.util.servicediscovery.DefaultEurekaFacade
+import hu.bets.common.util.EnvironmentVarResolver
 import hu.bets.matches.gateway.{ApiKeyReader, MatchInfoGateway}
 import hu.bets.matches.model.{MatchResult, Result}
 import hu.bets.matches.web.{MatchResultSender, PostRequestSender}
+import hu.bets.servicediscovery.EurekaFacadeImpl
 import org.junit.{Ignore, Test}
-import org.scalatest.mockito.MockitoSugar
 import org.mockito.Mockito._
+import org.scalatest.mockito.MockitoSugar
 
 class ResultsActorTest extends TestKit ( ActorSystem ( "Test" ) ) with ImplicitSender with MockitoSugar {
 
@@ -22,7 +23,7 @@ class ResultsActorTest extends TestKit ( ActorSystem ( "Test" ) ) with ImplicitS
 
     val keyReader = new ApiKeyReader
     val matchInfoGateway = new MatchInfoGateway ( keyReader )
-    val matchResultSender = new MatchResultSender ( new DefaultEurekaFacade (), new PostRequestSender )
+    val matchResultSender = new MatchResultSender ( new EurekaFacadeImpl (EnvironmentVarResolver.getEnvVar("url")), new PostRequestSender )
 
     val sut = system.actorOf ( Props ( new ResultsActor ( matchInfoGateway, matchResultSender ) {
       private[actors] override def getResults: List[MatchResult] = {

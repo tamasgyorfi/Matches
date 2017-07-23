@@ -2,10 +2,10 @@ package hu.bets.matches
 
 import akka.actor.ActorRef
 import akka.http.scaladsl.Http
-import hu.bets.common.services.Services
 import hu.bets.common.util.EnvironmentVarResolver
 import hu.bets.matches.config.ApplicationConfig
 import hu.bets.matches.web.api.FootballMatchResource
+import hu.bets.services.Services
 import org.slf4j.{Logger, LoggerFactory}
 
 private class Starter extends FootballMatchResource with ApplicationConfig {

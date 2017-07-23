@@ -1,9 +1,8 @@
 package hu.bets.matches.web
 
-import hu.bets.common.services.Services
-import hu.bets.common.util.servicediscovery.EurekaFacade
-import hu.bets.matches.AkkaSingletons
 import hu.bets.matches.model.{MatchResult, MatchResultToScoreService}
+import hu.bets.servicediscovery.EurekaFacade
+import hu.bets.services.Services
 import net.liftweb.json.Extraction._
 import net.liftweb.json.compactRender
 import org.slf4j.LoggerFactory

@@ -46,12 +46,6 @@
         </dependency>
 
         <dependency>
-            <groupId>com.enragedginger</groupId>
-            <artifactId>akka-quartz-scheduler_2.12</artifactId>
-            <version>1.6.0-akka-2.4.x</version>
-        </dependency>
-
-        <dependency>
             <groupId>org.mongodb</groupId>
             <artifactId>mongo-java-driver</artifactId>
             <version>3.4.2</version>
@@ -96,13 +90,19 @@
         <dependency>
             <groupId>hu.bets</groupId>
             <artifactId>common-infrastructure</artifactId>
-            <version>1.0.14</version>
+            <version>1.0.16</version>
             <exclusions>
                 <exclusion>
                     <artifactId>jedis</artifactId>
                     <groupId>redis.clients</groupId>
                 </exclusion>
             </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>hu.bets</groupId>
+            <artifactId>service-discovery</artifactId>
+            <version>0.0.4</version>
         </dependency>
 
         <dependency>

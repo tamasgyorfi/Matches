@@ -2,12 +2,12 @@ package hu.bets.matches.web
 
 import java.util.concurrent.TimeUnit
 
-import hu.bets.common.services.Services
-import hu.bets.common.util.servicediscovery.EurekaFacade
 import hu.bets.matches.model.{MatchResult, Result}
+import hu.bets.servicediscovery.EurekaFacade
+import hu.bets.services.Services
 import org.junit.Test
-import org.scalatest.mockito.MockitoSugar
 import org.mockito.Mockito._
+import org.scalatest.mockito.MockitoSugar
 
 class MatchResultSenderTest extends MockitoSugar {
 
