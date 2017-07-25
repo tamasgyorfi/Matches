@@ -19,7 +19,7 @@ class JobScheduler(schedulesActor: ActorRef, resultsActor: ActorRef) {
     val now = ZonedDateTime.now(ZONE)
     val tomorrowStart = now.toLocalDate.plusDays(1).atStartOfDay(ZONE)
 
-    java.time.Duration.between( now , tomorrowStart ).toMillis
+    java.time.Duration.between( now , tomorrowStart ).minusMinutes(10).toMillis
   }
 
   def scheduleAll(): Unit = {
