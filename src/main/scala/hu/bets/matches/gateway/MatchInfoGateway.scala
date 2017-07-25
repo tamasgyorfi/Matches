@@ -44,6 +44,7 @@ class MatchInfoGateway(keyReader: KeyReader) extends DateProvider {
 
   private[gateway] def getDatesToQuery(nrOfDays: Int): List[String] = {
     val currentDate = getCurrentDate
+    LOGGER info("Current date is: {}", currentDate)
     Range ( 0, nrOfDays ).toList.map ( index => currentDate.plusDays ( index ) ).map ( day => FORMATTER.format ( day ) )
   }
 
@@ -82,6 +83,7 @@ class MatchInfoGateway(keyReader: KeyReader) extends DateProvider {
     LOGGER info "Trying to read match results."
     try {
       val date = getDatesToQuery ( 1 ).head
+      LOGGER info("Will be querying external service for the date: {}", date)
       val results = getResults ( date )
       val parsedResults = parseMatchResults ( results )
       LOGGER.info ( "Read the following results: {}", parsedResults )
