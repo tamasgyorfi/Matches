@@ -44,7 +44,7 @@ class MatchInfoGatewayTest extends JUnitSuite with MockitoSugar {
 
   @Test
   def shouldReturnScheduleDaysForSevenDays(): Unit = {
-    assert ( List ( "2017-03-29", "2017-03-30", "2017-03-31", "2017-04-01", "2017-04-02", "2017-04-03", "2017-04-04" ) === sut.getDatesToQuery ( 7 ) )
+    assert ( List ( LocalDate.parse("2017-03-29"), LocalDate.parse("2017-03-30"), LocalDate.parse("2017-03-31"), LocalDate.parse("2017-04-01"), LocalDate.parse("2017-04-02"), LocalDate.parse("2017-04-03"), LocalDate.parse("2017-04-04") ) === sut.getDatesToQuery ( 7 ) )
   }
 
   @Test
@@ -70,6 +70,22 @@ class MatchInfoGatewayTest extends JUnitSuite with MockitoSugar {
 
   @Test
   def shouldReturnOneDaysWorthOfResults(): Unit = {
-    sut.getMatchResults === List ( MatchResult ( Result("Kayserispor", "Basaksehir FK", "sr:match:9792041", "Super Lig", 0, 1 ) ))
+    assert(sut.getMatchResults === List ( MatchResult ( Result("Kayserispor", "Basaksehir FK", "sr:match:9792041", "Super Lig 16/17", 0, 1 ) )))
+  }
+
+  @Test
+  def shouldQueryTheDayBeforeForResults() : Unit = {
+    sut = new MatchInfoGateway ( keyReader ) with FakeDateProvider {
+      override def getCurrentDate: LocalDate = super[FakeDateProvider].getCurrentDate
+
+      override def getResults(date: String) = {
+        if (!date.equals(getCurrentDate.minusDays(1).toString)) {
+          throw new IllegalArgumentException("Should query the day before.")
+        }
+        MATCHES_JSON
+      }
+    }
+
+    assert(sut.getMatchResults === List ( MatchResult ( Result("Kayserispor", "Basaksehir FK", "sr:match:9792041", "Super Lig 16/17", 0, 1 ) )))
   }
 }
