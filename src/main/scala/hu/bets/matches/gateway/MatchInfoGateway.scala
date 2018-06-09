@@ -56,7 +56,9 @@ class MatchInfoGateway(keyReader: KeyReader) extends DateProvider {
     getDatesToQuery(nrOfDays).map(date => {
       val endpoint = getScheduleEndpoint(FORMATTER.format(date))
       get.setURI(new URI(endpoint))
+      LOGGER info ("Endpoint is: {}", endpoint.substring(0, endpoint.indexOf("=")))
       val response = EntityUtils.toString(httpClient.execute(get).getEntity)
+      LOGGER info ("Raw response from the third party service was: {}", response)
       TimeUnit.SECONDS.sleep(1)
 
       response
