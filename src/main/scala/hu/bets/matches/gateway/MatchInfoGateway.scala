@@ -5,6 +5,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.TimeUnit
 
+import hu.bets.common.util.EnvironmentVarResolver
 import hu.bets.matches.conversions.StringToMatchResult.stringToMatchResults
 import hu.bets.matches.conversions.StringToScheduledMatch.stringToMatches
 import hu.bets.matches.model.{MatchResult, ScheduledMatch}
@@ -72,7 +73,13 @@ class MatchInfoGateway(keyReader: KeyReader) extends DateProvider {
 
   def getScheduledMatches(nrOfDays: Int): List[ScheduledMatch] = {
     try {
-      val json = getSchedules(nrOfDays)
+      val json =
+        EnvironmentVarResolver.getEnvVar("mode") match {
+          case "debug" => List(MockResponse.getResponse)
+          case _ => getSchedules(nrOfDays)
+        }
+
+
       json.flatMap(oneDayJson => parseSchedules(oneDayJson)
       )
     } catch {
